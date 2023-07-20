@@ -13,10 +13,7 @@ on:
 
  
   workflow_dispatch:
-    inputs:
-      message:
-        description: 'Parameter 1 for the workflow'
-        required: false
+    
 
 
 jobs:
