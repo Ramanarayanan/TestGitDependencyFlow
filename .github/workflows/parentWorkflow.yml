@@ -1,6 +1,7 @@
 
 
 name: parentWorkflow
+  
 
 
 on:
@@ -13,6 +14,10 @@ on:
 
  
   workflow_dispatch:
+    inputs:
+      branch:  # Optional input to specify the branch (you can customize this as needed)
+        description: 'Branch to run the workflow on'
+        required: true
     
 
 
