@@ -1,0 +1,65 @@
+name: Main Workflow
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger_another_workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Another Workflow
+        run: |
+          # Set the input parameters for the triggered workflow
+          INPUT_PARAM1="value_for_param1"
+          # Replace <username>, <repository-name>, and <workflow_id> with appropriate values
+          REPO=${{ github.event.repository.full_name }}
+          WORKFLOW_ID="parentWorkflow.yml"
+          
+          # Trigger the workflow dispatch event using GitHub REST API
+          RESPONSE=$(curl -X POST \
+                      -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                      -H "Accept: application/vnd.github.v3+json" \
+                      "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW_ID/dispatches" \
+                      -d "{\"ref\":\"main\",\"inputs\":{\"message\":\"$INPUT_PARAM1\"}}")
+          echo "Workflow triggered. Response: $RESPONSE"
+          
+          # Get the run ID of the triggered workflow from the response
+          RUN_ID=$(echo $RESPONSE | jq -r '.id')
+          echo "Triggered workflow run ID: $RUN_ID"
+          
+          # Wait for the triggered workflow to complete
+          echo "Waiting for the Triggered Workflow to complete..."
+          STATUS=""
+          TIMEOUT=600
+          while [ "$STATUS" != "completed" ] && [ $TIMEOUT -gt 0 ]; do
+            STATUS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                      "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID" \
+                      | jq -r '.status')
+            sleep 10
+            TIMEOUT=$((TIMEOUT-10))
+          done
+          
+          if [ "$STATUS" != "completed" ]; then
+            echo "Triggered workflow did not complete within the specified timeout."
+            exit 1
+          fi
+          
+          # Check the conclusion of the triggered workflow (success or failure)
+          CONCLUSION=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                       "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID" \
+                       | jq -r '.conclusion')
+          
+          if [ "$CONCLUSION" == "success" ]; then
+            echo "Triggered workflow completed successfully!"
+          else
+            echo "Triggered workflow failed!"
+            exit 1 # You can choose to exit the workflow or take specific error-handling actions here
+          fi
+          
+      - name: Continue with Next Job
+        if: success()
+        run: |
+          echo "Continuing with the next job because the triggered workflow was successful."
+          
+      # Add more jobs here that should only run if the triggered workflow is successful
