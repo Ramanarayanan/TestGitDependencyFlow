@@ -4,6 +4,9 @@ on:
     branches:
       - refs/heads/main
   workflow_dispatch: {}
+  workflow_run:
+    workflows: [Build_NUnitTests]
+    types: [requested]
  
 jobs:
   build:
