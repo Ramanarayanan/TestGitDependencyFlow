@@ -12,7 +12,7 @@ jobs:
       - name: Trigger Another Workflow
         run: |
           # Set the input parameters for the triggered workflow
-          INPUT_PARAM1="value_for_param1"
+          INPUT_PARAM1="main"
           # Replace <username>, <repository-name>, and <workflow_id> with appropriate values
           REPO=${{ github.event.repository.full_name }}
           WORKFLOW_ID="parentWorkflow.yml"
@@ -22,7 +22,7 @@ jobs:
                       -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                       -H "Accept: application/vnd.github.v3+json" \
                       "https://api.github.com/repos/$REPO/actions/workflows/$WORKFLOW_ID/dispatches" \
-                      -d "{\"ref\":\"main\",\"inputs\":{\"message\":\"$INPUT_PARAM1\"}}")
+                      -d "{\"ref\":\"main\",\"inputs\":{\"branch\":\"$INPUT_PARAM1\"}}")
           echo "Workflow triggered. Response: $RESPONSE"
           
           # Get the run ID of the triggered workflow from the response
