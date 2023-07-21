@@ -5,8 +5,10 @@ on:
       - refs/heads/main
   workflow_dispatch: {}
   workflow_run:
-    workflows: [Build_Dev]
-    types: [completed]
+    workflows: ["Build_Dev"]
+    branches: [main]
+    types: 
+     - completed
  
 jobs:
   build:
